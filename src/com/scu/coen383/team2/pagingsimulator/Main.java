@@ -1,7 +1,9 @@
 package com.scu.coen383.team2.pagingsimulator;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
 import java.util.ArrayList;
-import java.io.*;
 import java.util.LinkedList;
 
 /**
@@ -21,10 +23,16 @@ import java.util.LinkedList;
 
 public class Main
 {
+
     public static final int SIM_RUNS = 5;
-    public static final int SIM_TIME_MAX = 60;
-    public static final int MEMORY_SIZE = 100;
+//    public static final int SIM_TIME_MAX = 60;
+//    public static final int MEMORY_SIZE = 100;
+
+    // we have 150 total processes in the simulation
     public static final int PROCESS_COUNT= 150;
+
+    // data structure of memory, as we need to swap out some MemoryPage randomly, so
+    // a LinkedList is needed
     public static LinkedList<MemoryPage> memory = new LinkedList<MemoryPage>();
     public static double FIFOsw, FIFOhm, LFUsw, LFUhm, LRUsw, LRUhm, MFUsw, MFUhm, RPsw, RPhm;
 
@@ -43,6 +51,9 @@ public class Main
         // redirect output to file output.txt
 //        System.setOut(o);
 
+        /**
+         * run the simulator for 1 minutes
+         */
         simuOneMin();
 //        simuOneHundredReferences();
 
@@ -53,25 +64,33 @@ public class Main
         System.out.println("Simulation for 1 minute");
         System.out.println("------------------------------------------------");
         System.out.println("------------------------------------------------");
+
+        // we run 'SIM_RUNS' rounds to get an average statistics.
         int sim=1;
         while(sim <= SIM_RUNS) {
 
+            // initialize the memory data structure with 100 free MemoryPages.
             generateMemory(100);
             System.out.println("Simulation Run: " + sim);
             System.out.println("------------------------------------------------");
+
+            /**
+             * generate 'PROCESS_COUNT' processes and sort them by arrival time in ascending order
+             * the return value is stored as a LinkedList.
+             */
             LinkedList<Process> q = ProcessFactory.generateProcesses(PROCESS_COUNT);
 
+            // print out processes in process queue.
             System.out.println("Name\t Arrival\t Duration\t Size");
             for (Process p : q) {
                 System.out.format("%s\t %.1f\t\t %d\t\t %d", p.name, p.arrival, p.duration, p.size);
-                //System.out.format("%c\t %d\t\t %d\t\t %d", p.name, p.arrival, p.duration, p.size);
                 System.out.println();
             }
             System.out.println("------------------------------------------------");
+            // create
             ArrayList<Pager> pager = new ArrayList<Pager>() {{
                 add(new FIFO(memory, q));
                 add(new LFU(memory, q));
-                add(new LRU(memory, q));
                 add(new LRU(memory, q));
                 add(new MFU(memory, q));
                 add(new RP(memory, q));
