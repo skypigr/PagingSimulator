@@ -17,8 +17,8 @@ public class RP extends Pager
 
 	@Override
 	public int run(){
-		Random rand = new Random();
-		//int remove = rand.nextInt(99);
+		Random rand = new Random(123);
+		//create random number from memory size
 		int remove = rand.nextInt(MEMORY_SIZE_MB);
 		return remove;
 	}
