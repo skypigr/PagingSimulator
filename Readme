@@ -1,0 +1,8 @@
+in terminal
+-> Open this project in IntelliJ
+-> Add a configuration, select Main class from com.scu.coen383.team2.pagingsimulator.Main
+-> Run this project in IntelliJ
+->
+-> check the output.txt for simulation results of:
+ - 1 minite
+ - 100 page references

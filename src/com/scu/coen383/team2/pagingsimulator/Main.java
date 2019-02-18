@@ -1,5 +1,8 @@
 package com.scu.coen383.team2.pagingsimulator;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -48,6 +51,16 @@ public class Main
      */
     public static void main(String[] args) throws CloneNotSupportedException
     {
+        PrintStream o = null;
+        try {
+            o = new PrintStream(new File("output.txt"));
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        // redirect output to file output.txt
+        System.setOut(o);
+
         // run the simulator for 1 minutes
         simuOneMin();
 
