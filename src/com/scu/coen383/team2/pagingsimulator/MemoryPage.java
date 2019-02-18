@@ -1,9 +1,10 @@
+package com.scu.coen383.team2.pagingsimulator;
+
 /**
  * COEN383 GROUP 2
- * 
+ *
  * Customize a class named MemoryPage, use it to create memory page objects.
  */
-package com.scu.coen383.team2.pagingsimulator;
 
 public class MemoryPage {
     //Include the info of belonging to which process, page number, lastAccessed time, runtime and frequency
