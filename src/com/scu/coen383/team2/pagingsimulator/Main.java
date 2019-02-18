@@ -1,8 +1,5 @@
 package com.scu.coen383.team2.pagingsimulator;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -25,7 +22,7 @@ public class Main
 {
 
     public static final int SIM_RUNS = 5;
-//    public static final int SIM_TIME_MAX = 60;
+    public static final int SIM_TIME_MAX = 60;
     public static final int MEMORY_SIZE = 100;
 
     // we have 150 total processes in the simulation
@@ -34,7 +31,6 @@ public class Main
     // data structure of memory, as we need to swap out some MemoryPage randomly, so
     // a LinkedList is needed
     public static LinkedList<MemoryPage> memory = new LinkedList<MemoryPage>();
-//    public static double FIFOsw, FIFOhm, LFUsw, LFUhm, LRUsw, LRUhm, MFUsw, MFUhm, RPsw, RPhm;
     public static ArrayList<Integer> FIFOsw = new ArrayList<>(),
         LFUsw = new ArrayList<>(),
         LRUsw = new ArrayList<>(),
