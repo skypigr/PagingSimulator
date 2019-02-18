@@ -17,7 +17,7 @@ public class FIFO extends Pager
 
 	@Override
 	public int run() {
-		int remove = -1;//initialize as -1, if it couldnt find the largest runtime, will remain -1
+		int remove = -1;//initialize as -1, if it couldnt find, will remain -1
 		double highest = -1;
 		//go through memory, find the highest runtime
 		for (int i = 0; i < memory.size(); i++){

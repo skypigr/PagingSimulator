@@ -17,14 +17,14 @@ public class MFU extends Pager
 	@Override
 	public int run(){
 
-            int remove = -1;//initialize as -1, if it couldnt find the largest runtime, will remain -1
+            int remove = -1;//initialize as -1, if it couldnt find, will remain -1
             double highest = Integer.MIN_VALUE;
             //go through memory to find the highest frequency
-            for (int x = 0; x < memory.size(); x++){
-                MemoryPage temp = memory.get(x);
-                if (temp.name != "." && temp.frequency > highest){
-                    highest = temp.frequency;
-                    remove = x;
+            for (int i = 0; i < memory.size(); i++){
+                MemoryPage memoryAtI = memory.get(i);
+                if (memoryAtI.name != "." && memoryAtI.frequency > highest){
+                    highest = memoryAtI.frequency;
+                    remove = i;
                 }
             }
             return remove;

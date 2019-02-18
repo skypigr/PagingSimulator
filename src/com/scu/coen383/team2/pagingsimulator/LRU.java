@@ -17,9 +17,9 @@ public class LRU extends Pager
 
 	@Override
         public int run(){
-            int remove = -1;//initialize as -1, if it couldnt find the largest runtime, will remain -1
+            int remove = -1;//initialize as -1, if it couldnt find, will remain -1
             double highest = Integer.MIN_VALUE;
-            //go through memory to find the smallest lastAccessed
+            //go through memory to find the largest lastAccessed
             for (int i = 0; i < memory.size(); i++){
                 MemoryPage memoryAtI = memory.get(i);
                 if (memoryAtI.name != "." && memoryAtI.lastAccessed > highest){

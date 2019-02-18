@@ -15,7 +15,7 @@ public class LFU extends Pager
 
 	@Override
 	public int run(){
-            int remove = -1;//initialize as -1, if it couldnt find the largest runtime, will remain -1
+            int remove = -1;//initialize as -1, if it couldnt find, will remain -1
             double lowest = Integer.MAX_VALUE;
             //go through memory, find lowest frequency
             for (int i = 0; i < memory.size(); i++){
