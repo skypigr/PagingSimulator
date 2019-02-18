@@ -26,15 +26,10 @@ public abstract class Pager
 	public int miss = 0;
 	public double ratio = 0;
 	public int numReferencedPages = 0;
-	/**
-	 * Use a particular swapping algorithm to get the index of the next allocation
-	 * @param memory LinkedList<Process> representing the memory space
-	 * @param size int : size of the process to be allocated
-	 * @param start int: index to start searching (ignored by FirstFit, BestFit)
-	 * @return int : the index that the next process will be allocated to
-	 */
+
+
 	public Pager(LinkedList<MemoryPage> memory, LinkedList<Process> process) {
-		this.memory = new LinkedList<MemoryPage>( memory);
+		this.memory = new LinkedList<MemoryPage>(memory);
 		this.queue = new LinkedList<Process>(process);
 		this.arrivedQueue = new LinkedList<Process>();
 	}
@@ -42,68 +37,57 @@ public abstract class Pager
 	public abstract int run();
 	public abstract String getName();
 
-	/**
-	 * Simulate swapping using the given Swapping Algorithm and collect statistics
-	 * teminate when 1 min reached
-	 * @param processQueue Queue<Process> in FCFS order 
-	 * @return int : number of processes that were successfully swapped in 
-	 */
-	public void simulate() throws CloneNotSupportedException {
+
+	public void simulate(){ // simulate the situation of 60 seconds
 		int free = memory.size();
 		double time = 0.0;
 		boolean firstTime = true;
 		while (time <= 60) {
 
 			if(!firstTime) {
-				updateAll();
-				free += deallocateProcess(time);
+				updateAll(); //update the run time and last access index of the memory page
+				free += deallocateProcess(time); // free the memory space of the finished process
 			}
 
-			while (!queue.isEmpty() && queue.element().arrival <= time && free >= 4) { //add arrived processes to wait queue
-				//while (queue.element().arrival <= time && free >= 4) {
+			while (!queue.isEmpty() && queue.getFirst().arrival <= time && free >= 4) {
 				arrivedQueue.add(queue.removeFirst());
 			}
 
 			if(arrivedQueue.size() > 0) {
-				firstTime=false;
+				firstTime = false;
 			}
 			
 			for (Process p : arrivedQueue) {
 				int frame = p.NextPage();
-				//int frame = p.current == -1 ? 0 : p.NextPage();
+				//get next page number of the page
 
-				if (free >= 4) {//add existing or new process from arrivedQueue queue
-					if (checkProcess(p, frame)) { //mem hit
+				if (free >= 4) {
+					if (checkProcess(p, frame)) { //mem hit, update the last access index of the page
 						updateMemPage(p, frame);
 						hit++;
-					} else { //miss
+					} else { //mem miss, bring the page to the memory
 						miss++;
-						if(p.current == -1) { //p not start yet
-							//if(frame == 0) {
-							p.start=time; //set start time
+						if(p.current == -1) { // if p hasn't started yet, start p and set its start time to current time, set its page to current frame
+							p.start=time;
 						}
 						addProcPage(p, frame);
 						free--;
 						System.out.println("Time:" + time + ",\t Name:" + p.name + ",\t Enter,\t\t Size:" + p.size + ",\tService Duration:" + p.duration);
 					}
-					p.current = frame; //set curr frame
+					p.current = frame;
 					numReferencedPages++;
-				} else if(p.start < time) { //0 < free < 4 -> only work for started processes
+
+				} else if(p.start < time) { // when free < 4, only work for the already started process
 					if(free > 0){
 						if (checkProcess(p, frame)) {
-							//memory.indexOf(p.name);
 							updateMemPage(p, frame);
 							hit++;
-						} else { //!checkProc -> p.frame not in mem
-							/*if(frame == 0) {
-								p.start=time;
-							}*/
+						} else {
 							addProcPage(p, frame);
 							free--;
 							miss++;
 						}
-					} else { //free == 0
-						//else if( free == 0 ){
+					} else { //free = 0 replace the existing page with the newest one
 						int index = run(); //call the abstract method run()
 						replace(index, p, frame);
 						swapped++;
@@ -114,9 +98,8 @@ public abstract class Pager
 				}
 			}
 			time = time + 0.10;
-			//time = (double) (time + 0.10);
 			BigDecimal bd = new BigDecimal(time);
-			bd=bd.round(new MathContext(3));
+			bd = bd.round(new MathContext(3));
 			printMemoryMap();
 			time = bd.doubleValue();
 		}
@@ -124,13 +107,8 @@ public abstract class Pager
 		ratio = (double) hit/miss;
 	}
 
-	/**
-	 * Simulate swapping using the given Swapping Algorithm and collect statistics
-	 * terminate when 100 pages referenced
-	 * @param processQueue Queue<Process> in FCFS order
-	 * @return int : number of processes that were successfully swapped in
-	 */
-	public void simulate2() throws CloneNotSupportedException {
+
+	public void simulate2() {// simulate the situation of 100 reference page
 		int free = memory.size();
 		double time = 0.0;
 		boolean firstTime = true;
@@ -141,8 +119,7 @@ public abstract class Pager
 				free += deallocateProcess(time);
 			}
 			
-			while (queue.element().arrival <= time) { //add arrived processes to wait queue
-																								//while (queue.element().arrival <= time && free >= 4) {
+			while (queue.element().arrival <= time) {
 				arrivedQueue.add(queue.removeFirst());
 			}
 			
@@ -152,57 +129,46 @@ public abstract class Pager
 			
 			for (Process p : arrivedQueue) {
 				int frame = p.NextPage();
-				//int frame = p.current == -1 ? 0 : p.NextPage();
-				
-				if (free >= 4) {//add existing or new process from arrivedQueue queue
-					if (checkProcess(p, frame)) { //mem hit
+
+				if (free >= 4) {
+					if (checkProcess(p, frame)) {
 						updateMemPage(p, frame);
 						hit++;
 						System.out.println("Time:" + time + ",\t Name:" + p.name + ",\t Page referenced:" + frame + ",\tPage in memory");
-					} else { //miss
+					} else {
 						miss++;
-						if(p.current == -1) { //p not start yet
-																	//if(frame == 0) {
-							p.start=time; //set start time
+						if(p.current == -1) {
+							p.start=time;
 						}
 						addProcPage(p, frame);
 						free--;
 						System.out.println("Time:" + time + ",\t Name:" + p.name + ",\t Page referenced:" + frame + ",\tPage not in memory,\tno page evicted");
 					}
-					p.current = frame; //set curr frame
+					p.current = frame;
 					numReferencedPages++;
-				} else if(p.current != -1) { //if(p.start < time) { //0 < free < 4 -> only work for started processes
+				} else if(p.current != -1) { // when free < 4, only work for the already started process
 					if(free > 0){
 						if (checkProcess(p, frame)) {
-							//memory.indexOf(p.name);
 							updateMemPage(p, frame);
 							hit++;
-						} else { //!checkProc -> p.frame not in mem
-							/*if(frame == 0) {
-								p.start=time;
-							 }*/
+						} else {
 							addProcPage(p, frame);
 							free--;
 							miss++;
 						}
-					} else { //free == 0
-									 //else if( free == 0 ){
+					} else {
 						int index = run(); //call the abstract method run()
-						//int procName = memory.get(index).processName;
-						//int procPage = memory.get(index).processPage;
                         String procName = memory.get(index).processName;
                         int procPage = memory.get(index).processPage;
-
 						replace(index, p, frame);
 						swapped++;
 						System.out.println("Time:" + time + ",\t Name:" + p.name + ",\t Page referenced:" + frame + ",\tPage not in memory" + ",\tPage " + procPage + " of process " + procName + " will be evicted");
 					}
-					p.current = frame; //set curr frame
+					p.current = frame;
 					numReferencedPages++;
 				}
 			}
 			time = time + 0.10;
-			//time = (double) (time + 0.10);
 			BigDecimal bd = new BigDecimal(time);
 			bd=bd.round(new MathContext(3));
 			printMemoryMap();
@@ -212,10 +178,9 @@ public abstract class Pager
 		ratio = (double) hit/miss;
 	}
 	
-	private void updateMemPage(Process p, int frame) {//LFU MFU
+	private void updateMemPage(Process p, int frame) {// when the page on the memory is revisited, update its last accessed index and frequency index
 		for (MemoryPage m : memory){
 			if ((m.name == p.name) && (m.processPage == frame)) {
-				
 				m.lastAccessed = 0;
 				m.frequency+= 1;
 			}
@@ -223,7 +188,7 @@ public abstract class Pager
 
 	}
 
-	private void updateAll() {//LRU FIFO
+	private void updateAll() {// update the memory page's existing time and last access index
 		// TODO Auto-generated method stub
 		for (MemoryPage m : memory){
 			if (m.name != ".") {
@@ -233,10 +198,8 @@ public abstract class Pager
 		}
 	}
 
-	/*
-	 *Check if the frame of p is in memory
-	 */
-	private boolean checkProcess(Process p, int frame) {
+
+	private boolean checkProcess(Process p, int frame) { // check if the page of a process is in the memory
 		boolean ans = false;
 		for (MemoryPage m : memory)
 		{ 
@@ -248,43 +211,35 @@ public abstract class Pager
 		return ans;
 	}
 
-	private void replace(int index, Process p, int page) {
+	private void replace(int index, Process p, int page) { //replace the existing page with the newest one
 		memory.set(index, new MemoryPage(p, page, 0, 0, 0));
 	}
 
-	/**
-	 * Find the memory for the process that finished and deallocate it
-	 * @param memory LinkedList<Process> : the memory to search for deallocation
-	 * @param time int : the current time for use in printing the memory map
-	 */
 	public int deallocateProcess(double time)
 	{
 		int i = 0; //index of memory
 		int count = 0; //number of mem pages freed
-		HashSet<Process> procSet = new HashSet<Process>();
-		ArrayList<Integer> remove = new ArrayList<Integer>();
-		boolean removed = false;
-		for (MemoryPage m : memory){
-			//Remove the finished process and replace with available space ('.' process)
+		HashSet<Process> procSet = new HashSet<>();
+		ArrayList<Integer> remove = new ArrayList<>();
+
+		for (MemoryPage m : memory){ //Remove the finished process and replace with available space ('.' process)
 			if (m.name != ".") {
 				if (time == (m.process.start + m.process.duration)) //m.process is done
 				{
 					remove.add(i);
 					procSet.add(m.process);
 					count++;
-					removed =true;
 				}
 			}
 			i++;
 		}
 		
-		for(Process p : procSet) {
-			//arrivedQueue.remove(p);
+		for(Process p : procSet){ // evict the finished process from arrivedQueue
 			if(arrivedQueue.remove(p)) {
 				System.out.println("Time:" + time + ",\t Name:" + p.name + ",\t Exit,\t\t Size:" + p.size + ",\t Service Duration:" + p.duration);
 			}
 		}
-		for(int idx : remove) {
+		for(int idx : remove) {// set memory space as available
 			memory.set(idx, new MemoryPage("."));
 		}
 		remove.clear();
@@ -293,8 +248,7 @@ public abstract class Pager
 
 
 
-	public void printMemoryMap()
-	{
+	public void printMemoryMap(){
 		System.out.print("<");
 		for (MemoryPage m : memory)
 			System.out.print(m.name);
@@ -303,8 +257,7 @@ public abstract class Pager
 
 
 
-	public void addProcPage(Process p, int page)
-	{
+	public void addProcPage(Process p, int page){ //bring the page to the memory
 		MemoryPage blank =  new MemoryPage(".");
 		int i = memory.indexOf(blank);
 		memory.set(i, new MemoryPage(p, page, 0, 0, 0));
