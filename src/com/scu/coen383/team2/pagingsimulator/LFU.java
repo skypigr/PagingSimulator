@@ -4,7 +4,7 @@ import java.util.LinkedList;
 /**
  * COEN383 GROUP 2
  *
- * LFU Pager
+ * LFU(Least-frequently used) Pager
  */
 
 public class LFU extends Pager
@@ -15,21 +15,14 @@ public class LFU extends Pager
 
 	@Override
 	public int run(){
-            //Index in main memory to remove MemoryPage. -1 means an error has occured.
-            int remove = -1;
+            int remove = -1;//initialize as -1, if it couldnt find the largest runtime, will remain -1
             double lowest = Integer.MAX_VALUE;
-            //Loops through all entry in main memory
-            for (int x = 0; x < memory.size(); x++){
-                //Takes MemoryPage in memory[x]
-                MemoryPage temp = memory.get(x);
-                //Checks if MemoryPage is not empty
-                if (temp.name != "."){
-                    //If frequency in MemoryPage[x] is lower than lowest, set lowest to frequency. 
-                	if(temp.frequency < lowest){
-                        lowest = temp.frequency;
-                        //Index to remove is x
-                        remove = x;
-                    }
+            //go through memory, find lowest frequency
+            for (int i = 0; i < memory.size(); i++){
+                MemoryPage memoryAtI = memory.get(i);
+                if (memoryAtI.name != "." && memoryAtI.frequency < lowest){
+                    lowest = memoryAtI.frequency;
+                    remove = i;
                 }
             }
             return remove;

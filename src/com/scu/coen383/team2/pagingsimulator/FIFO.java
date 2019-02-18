@@ -5,7 +5,7 @@ import java.util.LinkedList;
 /**
  * COEN383 GROUP 2
  *
- * FIFO Pager
+ * FIFO(First In First Out) Pager
  */
 
 public class FIFO extends Pager
@@ -16,28 +16,19 @@ public class FIFO extends Pager
 	}
 
 	@Override
-        //Page with the highest runTime should be removed because it probably is the process that came first
-	public int run()
-	{
-		//Index in main memory to remove MemoryPage. -1 means an error has occured.
-		int remove = -1;
-		double highest = -1; //0;
-		//Loops through all entry in main memory
-		for (int x = 0; x < memory.size(); x++){
-				//Takes MemoryPage in memory[x]
-				MemoryPage temp = memory.get(x);
-				//Checks if MemoryPage is not empty
-				if (temp.name != "."){
-						//If runTime in MemoryPage[x] is greater than highest, set highest to runTime. 
-						if(temp.runTime > highest){
-								highest = temp.runTime;
-								//Index to remove is x
-								remove = x;
-						}
+	public int run() {
+		int remove = -1;//initialize as -1, if it couldnt find the largest runtime, will remain -1
+		double highest = -1;
+		//go through memory, find the highest runtime
+		for (int i = 0; i < memory.size(); i++){
+				MemoryPage memoryAtI = memory.get(i);
+				if (memoryAtI.name != "." && memoryAtI.runTime > highest){
+					highest = memoryAtI.runTime;
+					remove = i;
 				}
 		}
 		if(remove == -1) {
-			System.out.println();
+			System.out.println("FIFO error: can not find largest runtime");
 		}
 		return remove;
 	}
