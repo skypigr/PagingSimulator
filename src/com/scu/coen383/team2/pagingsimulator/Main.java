@@ -26,7 +26,7 @@ public class Main
 
     public static final int SIM_RUNS = 5;
 //    public static final int SIM_TIME_MAX = 60;
-//    public static final int MEMORY_SIZE = 100;
+    public static final int MEMORY_SIZE = 100;
 
     // we have 150 total processes in the simulation
     public static final int PROCESS_COUNT= 150;
@@ -34,28 +34,29 @@ public class Main
     // data structure of memory, as we need to swap out some MemoryPage randomly, so
     // a LinkedList is needed
     public static LinkedList<MemoryPage> memory = new LinkedList<MemoryPage>();
-    public static double FIFOsw, FIFOhm, LFUsw, LFUhm, LRUsw, LRUhm, MFUsw, MFUhm, RPsw, RPhm;
+//    public static double FIFOsw, FIFOhm, LFUsw, LFUhm, LRUsw, LRUhm, MFUsw, MFUhm, RPsw, RPhm;
+    public static ArrayList<Integer> FIFOsw = new ArrayList<>(),
+        LFUsw = new ArrayList<>(),
+        LRUsw = new ArrayList<>(),
+        MFUsw = new ArrayList<>(),
+        RPsw = new ArrayList<>();
+    public static ArrayList<Double>  FIFOhm = new ArrayList<>(),
+            LFUhm = new ArrayList<>(),
+            LRUhm = new ArrayList<>(),
+            MFUhm = new ArrayList<>(),
+            RPhm = new ArrayList<>();
+
 
     /** Simulate each algorithm SIM_RUNS times. Print out memory maps
      * each time memory is changed, and also print overall statistics
      */
     public static void main(String[] args) throws CloneNotSupportedException
     {
-        PrintStream o = null;
-        try {
-            o = new PrintStream(new File("output.txt"));
-        } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        // redirect output to file output.txt
-//        System.setOut(o);
-
-        /**
-         * run the simulator for 1 minutes
-         */
+        // run the simulator for 1 minutes
         simuOneMin();
-//        simuOneHundredReferences();
+
+        // run the simulator for 100 memory references.
+        simuOneHundredReferences();
 
     }
 
@@ -70,30 +71,35 @@ public class Main
         while(sim <= SIM_RUNS) {
 
             // initialize the memory data structure with 100 free MemoryPages.
-            generateMemory(100);
+            generateMemory(MEMORY_SIZE);
             System.out.println("Simulation Run: " + sim);
             System.out.println("------------------------------------------------");
 
-            /**
-             * generate 'PROCESS_COUNT' processes and sort them by arrival time in ascending order
-             * the return value is stored as a LinkedList.
+            /*
+              generate 'PROCESS_COUNT' processes and sort them by arrival time in ascending order
+              the return value is stored as a LinkedList.
              */
             LinkedList<Process> q = ProcessFactory.generateProcesses(PROCESS_COUNT);
 
-            // print out processes in process queue.
-            System.out.println("Name\t Arrival\t Duration\t Size");
+            // print out process info in process queue.
+            System.out.format("%-8s %-10s %-10s %s\n", "Name", "Arrival", "Duration", "Size");
             for (Process p : q) {
-                System.out.format("%s\t %.1f\t\t %d\t\t %d", p.name, p.arrival, p.duration, p.size);
+                System.out.format("%-8s %-10.1f %-10d %-2d", p.name, p.arrival, p.duration, p.size);
                 System.out.println();
             }
             System.out.println("------------------------------------------------");
-            // create
+
+            /*
+              class Pager is a abstract class, class FIFO is extended from Pager, the only thing
+              FIFO do is to overwrite the abstract function RUN and getName, so, we can use he base
+              class to represent these 5 algorithms implementation class
+             */
             ArrayList<Pager> pager = new ArrayList<Pager>() {{
                 add(new FIFO(memory, q));
                 add(new LFU(memory, q));
                 add(new LRU(memory, q));
                 add(new MFU(memory, q));
-                add(new RP(memory, q));
+                add(new RP(memory,  q));
             }};
 
             for (Pager p : pager){
@@ -101,31 +107,28 @@ public class Main
 
                 p.simulate();
                 if (p.getName() == "FIFO"){
-                    FIFOsw += p.swapped;
-                    FIFOhm += p.ratio;
+                    FIFOsw.add(p.swapped);
+                    FIFOhm.add(p.ratio);
                 }
                 if (p.getName() == "LFU"){
-                    LFUsw += p.swapped;
-                    LFUhm += p.ratio;
+                    LFUsw.add(p.swapped);
+                    LFUhm.add(p.ratio);
                 }
                 if (p.getName() == "LRU"){
-                    LRUsw += p.swapped;
-                    LRUhm += p.ratio;
+                    LRUsw.add(p.swapped);
+                    LRUhm.add(p.ratio);
                 }
                 if (p.getName() == "MFU"){
-                    MFUsw += p.swapped;
-                    MFUhm += p.ratio;
+                    MFUsw.add(p.swapped);
+                    MFUhm.add(p.ratio);
                 }
                 if (p.getName() == "Random Pick"){
-                    RPsw += p.swapped;
-                    RPhm += p.ratio;
+                    RPsw.add(p.swapped);
+                    RPhm.add(p.ratio);
                 }
                 System.out.println("------------------------------------------------");
-
                 System.out.println();
-
             }
-
 
             System.out.println("\n\n");
 
@@ -133,26 +136,9 @@ public class Main
             memory.clear();
         }
         System.out.println("Average Number of Processes Successfully Switched in over " + SIM_RUNS + " runs:");
-        System.out.println("---------------------------------------------------------------------------------");
-        System.out.println("FIFO: " +  FIFOsw/SIM_RUNS);
-        System.out.println("LFU: " +  LFUsw/SIM_RUNS);
-        System.out.println("LRU: " +  LRUsw/SIM_RUNS);
-        System.out.println("MFU: " +  MFUsw/SIM_RUNS);
-        System.out.println("Random Pick: " +  RPsw/SIM_RUNS);
-        System.out.println();
+        printOutStatisticSwap();
         System.out.println("Average Hit/Miss Ration over " + SIM_RUNS + " runs:");
-        System.out.println("---------------------------------------------------------------------------------");
-		/*System.out.println("FIFO: " +  FIFOhm/SIM_RUNS);
-		System.out.println("LFU: " +  LFUhm/SIM_RUNS);
-		System.out.println("LRU: " +  LRUhm/SIM_RUNS);
-		System.out.println("MFU: " +  MFUhm/SIM_RUNS);
-		System.out.println("Random Pick: " +  RPhm/SIM_RUNS);*/
-
-        System.out.format("FIFO: %.2f%n", FIFOhm/SIM_RUNS);
-        System.out.format("LFU: %.2f%n", LFUhm/SIM_RUNS);
-        System.out.format("LRU: %.2f%n", LRUhm/SIM_RUNS);
-        System.out.format("MFU: %.2f%n", MFUhm/SIM_RUNS);
-        System.out.format("Random Pick: %.2f%n", RPhm/SIM_RUNS);
+        printOutStatisticAvg();
     }
 
     public static void simuOneHundredReferences() throws CloneNotSupportedException
@@ -164,17 +150,17 @@ public class Main
         System.out.println("------------------------------------------------");
         System.out.println("------------------------------------------------");
 
-        //reinit
-        FIFOsw = 0;
-        FIFOhm = 0;
-        LFUsw = 0;
-        LFUhm = 0;
-        LRUsw = 0;
-        LRUhm = 0;
-        MFUsw = 0;
-        MFUhm = 0;
-        RPsw = 0;
-        RPhm = 0;
+        //reinitialize
+        FIFOsw.clear();
+        FIFOhm.clear();
+        LFUsw.clear();
+        LFUhm.clear();
+        LRUsw.clear();
+        LRUhm.clear();
+        MFUsw.clear();
+        MFUhm.clear();
+        RPsw.clear();
+        RPhm.clear();
 
         int sim=1;
         while(sim <= SIM_RUNS) {
@@ -184,12 +170,13 @@ public class Main
             System.out.println("------------------------------------------------");
             LinkedList<Process> q = ProcessFactory.generateProcesses(PROCESS_COUNT);
 
-            System.out.println("Name\t Arrival\t Duration\t Size");
+            // print out process info in process queue.
+            System.out.format("%-8s %-10s %-10s %s\n", "Name", "Arrival", "Duration", "Size");
             for (Process p : q) {
-                System.out.format("%s\t %.1f\t\t %d\t\t %d", p.name, p.arrival, p.duration, p.size);
-                //System.out.format("%c\t %d\t\t %d\t\t %d", p.name, p.arrival, p.duration, p.size);
+                System.out.format("%-8s %-10.1f %-10d %-2d", p.name, p.arrival, p.duration, p.size);
                 System.out.println();
             }
+
             System.out.println("------------------------------------------------");
             ArrayList<Pager> pager = new ArrayList<Pager>() {{
                 add(new FIFO(memory, q));
@@ -205,58 +192,37 @@ public class Main
 
                 p.simulate2();
                 if (p.getName() == "FIFO"){
-                    FIFOsw += p.swapped;
-                    FIFOhm += p.ratio;
+                    FIFOsw.add(p.swapped);
+                    FIFOhm.add(p.ratio);
                 }
                 if (p.getName() == "LFU"){
-                    LFUsw += p.swapped;
-                    LFUhm += p.ratio;
+                    LFUsw.add(p.swapped);
+                    LFUhm.add(p.ratio);
                 }
                 if (p.getName() == "LRU"){
-                    LRUsw += p.swapped;
-                    LRUhm += p.ratio;
+                    LRUsw.add(p.swapped);
+                    LRUhm.add(p.ratio);
                 }
                 if (p.getName() == "MFU"){
-                    MFUsw += p.swapped;
-                    MFUhm += p.ratio;
+                    MFUsw.add(p.swapped);
+                    MFUhm.add(p.ratio);
                 }
                 if (p.getName() == "Random Pick"){
-                    RPsw += p.swapped;
-                    RPhm += p.ratio;
+                    RPsw.add(p.swapped);
+                    RPhm.add(p.ratio);
                 }
                 System.out.println("------------------------------------------------");
-
                 System.out.println();
 
             }
-
 
             System.out.println("\n\n");
 
             sim++;
             memory.clear();
-        }/*
-		System.out.println("Average Number of Processes Successfully Switched in over " + SIM_RUNS + " runs:");
-		System.out.println("---------------------------------------------------------------------------------");
-		System.out.println("FIFO: " +  FIFOsw/SIM_RUNS);
-		System.out.println("LFU: " +  LFUsw/SIM_RUNS);
-		System.out.println("LRU: " +  LRUsw/SIM_RUNS);
-		System.out.println("MFU: " +  MFUsw/SIM_RUNS);
-		System.out.println("Random Pick: " +  RPsw/SIM_RUNS);
-		System.out.println();*/
+        }
         System.out.println("Average Hit/Miss Ration over " + SIM_RUNS + " runs:");
-        System.out.println("---------------------------------------------------------------------------------");
-		/*System.out.println("FIFO: " +  FIFOhm/SIM_RUNS);
-		 System.out.println("LFU: " +  LFUhm/SIM_RUNS);
-		 System.out.println("LRU: " +  LRUhm/SIM_RUNS);
-		 System.out.println("MFU: " +  MFUhm/SIM_RUNS);
-		 System.out.println("Random Pick: " +  RPhm/SIM_RUNS);*/
-
-        System.out.format("FIFO: %.2f%n", FIFOhm/SIM_RUNS);
-        System.out.format("LFU: %.2f%n", LFUhm/SIM_RUNS);
-        System.out.format("LRU: %.2f%n", LRUhm/SIM_RUNS);
-        System.out.format("MFU: %.2f%n", MFUhm/SIM_RUNS);
-        System.out.format("Random Pick: %.2f%n", RPhm/SIM_RUNS);
+        printOutStatisticAvg();
     }
 
     public static void generateMemory(int n)
@@ -265,4 +231,42 @@ public class Main
             memory.add(new MemoryPage("."));
         }
     }
+
+
+    public static void printOutStatisticAvg() {
+        System.out.println("---------------------------------------------------------------------------------");
+        System.out.format("%-8s %-10s %-10s %-10s %s\n", "FIFO", "LFU", "LRU", "MFU", "Random Pick");
+        for (int i = 0; i < SIM_RUNS; i++) {
+            System.out.format("%-8.2f %-10.2f %-10.2f %-10.2f %.2f\n",
+                    FIFOhm.get(i), LFUhm.get(i), LRUhm.get(i), MFUhm.get(i), RPhm.get(i));
+        }
+        // print out the average data
+        System.out.println("---------------------------------------------------------------------------------");
+        System.out.format("%-8.2f %-10.2f %-10.2f %-10.2f %.2f\n",
+                FIFOhm.stream().mapToDouble(val -> val).average().orElse(0.0),
+                LFUhm.stream().mapToDouble(val -> val).average().orElse(0.0),
+                LRUhm.stream().mapToDouble(val -> val).average().orElse(0.0),
+                MFUhm.stream().mapToDouble(val -> val).average().orElse(0.0),
+                RPhm.stream().mapToDouble(val -> val).average().orElse(0.0)
+        );
+    }
+
+    public static void printOutStatisticSwap() {
+        System.out.println("---------------------------------------------------------------------------------");
+        System.out.format("%-8s %-10s %-10s %-10s %s\n", "FIFO", "LFU", "LRU", "MFU", "Random Pick");
+        for (int i = 0; i < SIM_RUNS; i++) {
+            System.out.format("%-8d %-10d %-10d %-10d %d\n",
+                    FIFOsw.get(i), LFUsw.get(i), LRUsw.get(i), MFUsw.get(i), RPsw.get(i));
+        }
+        System.out.println("---------------------------------------------------------------------------------");
+        System.out.format("%-8.1f %-10.1f %-10.1f %-10.1f %.1f\n",
+                FIFOsw.stream().mapToDouble(val -> val).average().orElse(0.0),
+                LFUsw.stream().mapToDouble(val -> val).average().orElse(0.0),
+                LRUsw.stream().mapToDouble(val -> val).average().orElse(0.0),
+                MFUsw.stream().mapToDouble(val -> val).average().orElse(0.0),
+                RPsw.stream().mapToDouble(val -> val).average().orElse(0.0)
+        );
+        System.out.println();
+    }
+
 }
