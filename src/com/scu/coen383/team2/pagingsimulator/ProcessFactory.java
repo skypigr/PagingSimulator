@@ -8,72 +8,58 @@ import java.util.Random;
 
 /**
  * COEN383 GROUP 2
- * A ProcessFactory that generates processes
+ *
+ * Customize a class named ProcessFactory which is used to generate Processes
+ *
  */
 
-public class ProcessFactory 
-{    
-	public static final int PROCESS_TIME_MAX = 5;
-	public static final int[] PROCESS_SIZES_MB = {5, 11, 17, 31};
-	public static final double MAX_SIMU_TIME = 60.0; //1 min = 60 seconds
-    public static final String[] NAMES = new String[150];
-    //"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" + //62
-        //"ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏ00D0ÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö"+ //58
-			//"ĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħ";//40 = 160 char/unique processes
+public class ProcessFactory {
+	//Set MAX_SIMULATION_TIME to 1 minute (60 seconds)
+	public static final double MAX_SIMULATION_TIME = 60.0;
+	public static final int PROCESS_SERVICE_DURATION_MAX = 5;
+	public static final int[] PROCESS_SIZES_IN_MB = new int[]{5, 11, 17, 31};
 
+	public static LinkedList<Process> generateProcesses(int processCount) {
+		LinkedList<Process> processList = new LinkedList<>();
 
-	/** Generate processes randomly until the total task duration is greater
-	 * than SIM_TIME_MAX by a bit so that there is at least one process that 
-	 * doesn't finish executing
-	 * @param n int : maximum number of processes to generate
-	 */
-	public static LinkedList<Process> generateProcesses(int n)
-	{
-		LinkedList<Process> processQueue = new LinkedList<>();
+		String[] processNames = new String[processCount];
+		List<Integer> processDurationList = new ArrayList<>();
+		List<Integer> processSizeList = new ArrayList<>();
 
-		// used for evenly distributing memory sizes
-		Random rand = new Random();
-		int index = 0;
-		//int arrivalTime=0;
-		double arrivalTime = 0.0;
-		int duration = 0;
-		int size = 0;
-		List<Integer> procDuration = new ArrayList<>();
-		List<Integer> procSize = new ArrayList<>();
-
-        for (int i = 0; i < NAMES.length; i++) {
-            NAMES[i] = "P" + Integer.toString(i);
+		//Process is named as P0, P2, P3 ... P149
+        for (int i = 0; i < processCount; i++) {
+			processNames[i] = "P" + String.valueOf(i);
         }
-        
-		for (int i = 0; i < 32; i++) {
-			for (int j = 1; j <= PROCESS_TIME_MAX ; j++) {
-				procDuration.add(j);
+
+		//Used rand to evenly distribute process size and process service duration time
+		Random rand = new Random();
+		//Generate 150 service process size evenly and distractedly within 5, 11, 17, 31 MB
+		for (int i = 0; i < 38; i++) {
+			for (int j = 0; j < PROCESS_SIZES_IN_MB.length; j++) {
+				processSizeList.add(PROCESS_SIZES_IN_MB[j]);
 			}
 		}
-		Collections.shuffle(procDuration, new Random());
-		
-		
-		for (int i = 0; i < 40; i++) {
-			for (int j = 0; j < PROCESS_SIZES_MB.length ; j++) {
-				procSize.add(PROCESS_SIZES_MB[j]);
+		//Disorganize the process size
+		Collections.shuffle(processSizeList, new Random());
+
+        //Generate 150 service duration time evenly and distractedly within 1, 2, 3, 4, 5 seconds
+		for (int i = 0; i < 30; i++) {
+			for (int j = 1; j <= PROCESS_SERVICE_DURATION_MAX; j++) {
+				processDurationList.add(j);
 			}
 		}
-		Collections.shuffle(procSize, new Random());
-		
-		
-		while (processQueue.size() < NAMES.length)
-		{
-			size = procSize.get(index);
-			duration = procDuration.get(index);
-			
-			processQueue.addLast(new Process(duration, size, 
-					NAMES[index], arrivalTime, arrivalTime));
-			//arrivalTime = arrivalTime + rand.nextInt(2);
-			arrivalTime = arrivalTime + rand.nextDouble() * (MAX_SIMU_TIME - arrivalTime) / (NAMES.length - processQueue.size());
+		//Disorganize the service duration time
+		Collections.shuffle(processDurationList, new Random());
 
-			index ++;
+		//Generate 150 random Processes based on processSizeList and processDurationList
+		int count = 0;
+		double arrivalTime = 0.0;
+		while (processList.size() < processCount) {
+			processList.add(new Process(processDurationList.get(count), processSizeList.get(count),
+					processNames[count], arrivalTime, arrivalTime));
+			arrivalTime = arrivalTime + rand.nextDouble() * (MAX_SIMULATION_TIME - arrivalTime) / (processCount - processList.size());
+			count++;
 		}
-
-		return processQueue;
+		return processList;
 	}
 }
